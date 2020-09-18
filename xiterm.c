@@ -1,9 +1,15 @@
 #include <gtk/gtk.h>
 #include <vte/vte.h>
 
+#define PCRE2_CODE_UNIT_WIDTH 0
+#include <pcre2.h>
+
+#define REGEX_URL "https?://[a-zA-Z0-9./_-]+"
+
 GtkApplication *app;
 GtkWidget *window;
 GtkNotebook *notebook;
+VteRegex *url_regex;
 
 char *cmd[2] = {"/bin/bash", NULL};
 
@@ -17,6 +23,25 @@ void update_show_tabs() {
 	} else {
 		gtk_notebook_set_show_tabs(notebook, FALSE);
 	}
+}
+
+gboolean on_term_click(VteTerminal *term, GdkEventButton *event, gpointer user_data) {
+	GError *err = NULL;
+	char *uri;
+
+	if (event->button == 3) {
+		uri = vte_terminal_match_check_event(term, (GdkEvent *)event, NULL);
+		if (uri != NULL) {
+			gtk_show_uri_on_window(GTK_WINDOW(window), uri, gtk_get_current_event_time(), &err);
+			if (err != NULL) {
+				fprintf(stderr, "Unable to open URI: %s\n", err->message);
+				g_error_free(err);
+			}
+			g_free(uri);
+			return TRUE;
+		}
+	}
+	return FALSE;
 }
 
 void on_term_exit(VteTerminal *term, int status, gpointer user_data) {
@@ -42,9 +67,14 @@ VteTerminal *get_current_term(void) {
 }
 
 void setup_terminal(VteTerminal *term) {
+	int tag;
+
 	vte_terminal_spawn_async(term, VTE_PTY_DEFAULT, NULL, cmd, NULL, G_SPAWN_DEFAULT, NULL, NULL, NULL, -1, NULL, NULL, NULL);
 	vte_terminal_set_cursor_blink_mode(term, VTE_CURSOR_BLINK_OFF);
+	tag = vte_terminal_match_add_regex(term, url_regex, 0);
+	vte_terminal_match_set_cursor_name(term, tag, "pointer");
 
+	g_signal_connect(term, "button-press-event", G_CALLBACK(on_term_click), NULL);
 	g_signal_connect(term, "child-exited", G_CALLBACK(on_term_exit), NULL);
 }
 
@@ -108,11 +138,16 @@ void activate(GtkApplication* app, gpointer user_data) {
 
 int main(int argc, char **argv) {
 	int status;
+	GError *err = NULL;
+
+	url_regex = vte_regex_new_for_match(REGEX_URL, -1, PCRE2_MULTILINE, &err);
+	g_assert(err == NULL);
 
 	app = gtk_application_new("org.xi.xiterm", G_APPLICATION_FLAGS_NONE);
 	g_signal_connect(app, "activate", G_CALLBACK(activate), NULL);
 	status = g_application_run(G_APPLICATION(app), argc, argv);
 	g_object_unref(app);
+	vte_regex_unref(url_regex);
 
 	return status;
 }
