@@ -11,11 +11,21 @@ gboolean match_key(GdkEventKey *event, int state, int keyval) {
 	return event->state == state && event->keyval == keyval;
 }
 
+void update_show_tabs() {
+	if (gtk_notebook_get_n_pages(notebook) > 1) {
+		gtk_notebook_set_show_tabs(notebook, TRUE);
+	} else {
+		gtk_notebook_set_show_tabs(notebook, FALSE);
+	}
+}
+
 void on_term_exit(VteTerminal *term, int status, gpointer user_data) {
 	gtk_notebook_remove_page(notebook, gtk_notebook_page_num(notebook, GTK_WIDGET(term)));
 
 	if (gtk_notebook_get_n_pages(notebook) == 0) {
 		g_application_quit(G_APPLICATION(app));
+	} else {
+		update_show_tabs();
 	}
 }
 
@@ -48,6 +58,7 @@ void add_tab(void) {
 	gtk_notebook_set_tab_reorderable(notebook, page, TRUE);
 	gtk_container_child_set(GTK_CONTAINER(notebook), page, "tab-expand", TRUE, NULL);
 
+	update_show_tabs();
 	gtk_widget_show(page);
 	gtk_notebook_set_current_page(notebook, page_num);
 	gtk_widget_grab_focus(page);
