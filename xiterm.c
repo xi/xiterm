@@ -10,8 +10,13 @@ GtkApplication *app;
 GtkWidget *window;
 GtkNotebook *notebook;
 VteRegex *url_regex;
+GdkRGBA palette[16];
 
 char *cmd[2] = {"/bin/bash", NULL};
+const char *colors[16] = {
+	"#000", "#c00", "#591", "#b71", "#16c", "#96a", "#299", "#ccc",
+	"#333", "#f33", "#7c0", "#ed0", "#6ad", "#c8b", "#0dd", "#fff",
+};
 
 gboolean match_key(GdkEventKey *event, int state, int keyval) {
 	return event->state == state && event->keyval == keyval;
@@ -73,6 +78,8 @@ void setup_terminal(VteTerminal *term) {
 	vte_terminal_set_cursor_blink_mode(term, VTE_CURSOR_BLINK_OFF);
 	tag = vte_terminal_match_add_regex(term, url_regex, 0);
 	vte_terminal_match_set_cursor_name(term, tag, "pointer");
+	vte_terminal_set_colors(term, &palette[15], NULL, palette, 16);
+	vte_terminal_set_bold_is_bright(term, TRUE);
 
 	g_signal_connect(term, "button-press-event", G_CALLBACK(on_term_click), NULL);
 	g_signal_connect(term, "child-exited", G_CALLBACK(on_term_exit), NULL);
@@ -137,11 +144,15 @@ void activate(GtkApplication* app, gpointer user_data) {
 }
 
 int main(int argc, char **argv) {
-	int status;
+	int i, status;
 	GError *err = NULL;
 
 	url_regex = vte_regex_new_for_match(REGEX_URL, -1, PCRE2_MULTILINE, &err);
 	g_assert(err == NULL);
+
+	for (i = 0; i < 16; i++) {
+		gdk_rgba_parse(palette + i, colors[i]);
+	}
 
 	app = gtk_application_new("org.xi.xiterm", G_APPLICATION_FLAGS_NONE);
 	g_signal_connect(app, "activate", G_CALLBACK(activate), NULL);
