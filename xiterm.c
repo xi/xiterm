@@ -11,6 +11,7 @@ GtkWidget *window;
 GtkNotebook *notebook;
 VteRegex *url_regex;
 GdkRGBA palette[16];
+double font_scale = 1;
 
 char *cmd[2] = {"/bin/bash", NULL};
 const char *colors[16] = {
@@ -20,6 +21,19 @@ const char *colors[16] = {
 
 gboolean match_key(GdkEventKey *event, int state, int keyval) {
 	return event->state == state && event->keyval == keyval;
+}
+
+void set_font_scale(double value) {
+	int i, n;
+	GtkWidget *page;
+
+	font_scale = value;
+
+	n = gtk_notebook_get_n_pages(notebook);
+	for (i = 0; i < n; i++) {
+		page = gtk_notebook_get_nth_page(notebook, i);
+		vte_terminal_set_font_scale(VTE_TERMINAL(page), font_scale);
+	}
 }
 
 void update_show_tabs() {
@@ -80,6 +94,7 @@ void setup_terminal(VteTerminal *term) {
 	vte_terminal_match_set_cursor_name(term, tag, "pointer");
 	vte_terminal_set_colors(term, &palette[15], NULL, palette, 16);
 	vte_terminal_set_bold_is_bright(term, TRUE);
+	vte_terminal_set_font_scale(term, font_scale);
 
 	g_signal_connect(term, "button-press-event", G_CALLBACK(on_term_click), NULL);
 	g_signal_connect(term, "child-exited", G_CALLBACK(on_term_exit), NULL);
@@ -118,6 +133,12 @@ gboolean on_key(GtkWidget *widget, GdkEventKey *event, gpointer user_data) {
 	} else if (match_key(event, GDK_CONTROL_MASK|GDK_SHIFT_MASK, GDK_KEY_V)) {
 		term = get_current_term();
 		vte_terminal_paste_clipboard(term);
+	} else if (match_key(event, GDK_CONTROL_MASK|GDK_SHIFT_MASK, GDK_KEY_plus)) {
+		set_font_scale(font_scale * 1.2);
+	} else if (match_key(event, GDK_CONTROL_MASK, GDK_KEY_minus)) {
+		set_font_scale(font_scale / 1.2);
+	} else if (match_key(event, GDK_CONTROL_MASK, GDK_KEY_0)) {
+		set_font_scale(1);
 	} else {
 		return FALSE;
 	}
