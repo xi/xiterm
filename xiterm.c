@@ -44,6 +44,13 @@ void update_show_tabs() {
 	}
 }
 
+void on_term_title(VteTerminal *term, gpointer user_data) {
+	const char *title;
+
+	title = vte_terminal_get_window_title(term);
+	gtk_notebook_set_tab_label_text(notebook, GTK_WIDGET(term), title);
+}
+
 gboolean on_term_click(VteTerminal *term, GdkEventButton *event, gpointer user_data) {
 	GError *err = NULL;
 	char *uri;
@@ -96,6 +103,7 @@ void setup_terminal(VteTerminal *term) {
 	vte_terminal_set_bold_is_bright(term, TRUE);
 	vte_terminal_set_font_scale(term, font_scale);
 
+	g_signal_connect(term, "window-title-changed", G_CALLBACK(on_term_title), NULL);
 	g_signal_connect(term, "button-press-event", G_CALLBACK(on_term_click), NULL);
 	g_signal_connect(term, "child-exited", G_CALLBACK(on_term_exit), NULL);
 }
