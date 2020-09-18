@@ -12,8 +12,10 @@ clean:
 
 install: all
 	install -D -m 755 xiterm ${DESTDIR}${PREFIX}/bin/xiterm
+	install -D xiterm.desktop ${DESTDIR}${PREFIX}/share/applications/xiterm.desktop
 
 uninstall:
 	rm -f ${DESTDIR}${PREFIX}/bin/xiterm
+	rm -f ${DESTDIR}${PREFIX}/share/applications/xiterm.desktop
 
 .PHONY: all clean install uninstall
