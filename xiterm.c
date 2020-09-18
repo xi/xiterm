@@ -89,10 +89,27 @@ VteTerminal *get_current_term(void) {
 	}
 }
 
+const char* get_cwd(VteTerminal *term) {
+	// only works if /etc/profile.d/vte-2.91.sh was sourced in .bashrc
+	const char *uri;
+
+	if (term != NULL) {
+		uri = vte_terminal_get_current_directory_uri(term);
+		if (uri != NULL) {
+			return g_filename_from_uri(uri, NULL, NULL);
+		}
+	}
+
+	return NULL;
+}
+
 void setup_terminal(VteTerminal *term) {
 	int tag;
+	const char *cwd;
 
-	vte_terminal_spawn_async(term, VTE_PTY_DEFAULT, NULL, cmd, NULL, G_SPAWN_DEFAULT, NULL, NULL, NULL, -1, NULL, NULL, NULL);
+	cwd = get_cwd(get_current_term());
+
+	vte_terminal_spawn_async(term, VTE_PTY_DEFAULT, cwd, cmd, NULL, G_SPAWN_DEFAULT, NULL, NULL, NULL, -1, NULL, NULL, NULL);
 	vte_terminal_set_cursor_blink_mode(term, VTE_CURSOR_BLINK_OFF);
 	tag = vte_terminal_match_add_regex(term, url_regex, 0);
 	vte_terminal_match_set_cursor_name(term, tag, "pointer");
@@ -117,10 +134,14 @@ void add_tab(void) {
 
 	update_show_tabs();
 	gtk_widget_show(page);
+
+	// needs to execute after gtk_widget_show() (for proper dimensions)
+	// and before gtk_notebook_get_current_page() (so we can access the
+	// previous term to get cwd)
+	setup_terminal(VTE_TERMINAL(page));
+
 	gtk_notebook_set_current_page(notebook, page_num);
 	gtk_widget_grab_focus(page);
-
-	setup_terminal(VTE_TERMINAL(page));
 }
 
 gboolean on_key(GtkWidget *widget, GdkEventKey *event, gpointer user_data) {
