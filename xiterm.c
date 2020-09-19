@@ -8,7 +8,7 @@
 #define KEY(v, s) (event->keyval == (v) && event->state == (GDK_CONTROL_MASK|(s)))
 
 GtkApplication *app;
-GtkWidget *window;
+GtkWindow *window;
 GtkNotebook *notebook;
 VteRegex *url_regex;
 GdkRGBA palette[16];
@@ -55,7 +55,7 @@ gboolean on_term_click(VteTerminal *term, GdkEventButton *event, gpointer user_d
 	if (event->button == 3) {
 		uri = vte_terminal_match_check_event(term, (GdkEvent *)event, NULL);
 		if (uri != NULL) {
-			gtk_show_uri_on_window(GTK_WINDOW(window), uri, gtk_get_current_event_time(), &err);
+			gtk_show_uri_on_window(window, uri, gtk_get_current_event_time(), &err);
 			if (err != NULL) {
 				fprintf(stderr, "Unable to open URI: %s\n", err->message);
 				g_error_free(err);
@@ -176,18 +176,19 @@ gboolean on_key(GtkWidget *widget, GdkEventKey *event, gpointer user_data) {
 void activate(GtkApplication* app, gpointer user_data) {
 	GtkWidget *widget;
 
-	window = gtk_application_window_new(app);
+	widget = gtk_application_window_new(app);
+	window = GTK_WINDOW(widget);
 	gtk_window_set_default_icon_name("utilities-terminal");
-	gtk_window_set_default_size(GTK_WINDOW(window), 620, 340);
-	gtk_window_set_title(GTK_WINDOW(window), "XiTerm");
-	g_signal_connect(window, "key-press-event", G_CALLBACK(on_key), NULL);
+	gtk_window_set_default_size(window, 620, 340);
+	gtk_window_set_title(window, "XiTerm");
+	g_signal_connect(GTK_WIDGET(window), "key-press-event", G_CALLBACK(on_key), NULL);
 
 	widget = gtk_notebook_new();
 	gtk_container_add(GTK_CONTAINER(window), widget);
 	notebook = GTK_NOTEBOOK(widget);
 
 	gtk_notebook_set_show_border(notebook, FALSE);
-	gtk_widget_show_all(window);
+	gtk_widget_show_all(GTK_WIDGET(window));
 
 	add_tab();
 }
