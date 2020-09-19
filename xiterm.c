@@ -71,7 +71,7 @@ void on_term_exit(VteTerminal *term, int status, gpointer user_data) {
 	gtk_notebook_remove_page(notebook, gtk_notebook_page_num(notebook, GTK_WIDGET(term)));
 
 	if (gtk_notebook_get_n_pages(notebook) == 0) {
-		g_application_quit(G_APPLICATION(app));
+		gtk_window_close(window);
 	} else {
 		update_show_tabs();
 	}
