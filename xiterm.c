@@ -5,6 +5,7 @@
 #include <pcre2.h>
 
 #define REGEX_URL "https?://[a-zA-Z0-9./_-]+"
+#define KEY(v, s) (event->keyval == (v) && event->state == (GDK_CONTROL_MASK|(s)))
 
 GtkApplication *app;
 GtkWidget *window;
@@ -18,10 +19,6 @@ const char *colors[16] = {
 	"#000", "#c00", "#591", "#b71", "#16c", "#96a", "#299", "#ccc",
 	"#333", "#f33", "#7c0", "#ed0", "#6ad", "#c8b", "#0dd", "#fff",
 };
-
-gboolean match_key(GdkEventKey *event, int state, int keyval) {
-	return event->state == state && event->keyval == keyval;
-}
 
 void set_font_scale(double value) {
 	int i, n;
@@ -129,23 +126,25 @@ void add_tab(void) {
 gboolean on_key(GtkWidget *widget, GdkEventKey *event, gpointer user_data) {
 	VteTerminal *term;
 
-	if (match_key(event, GDK_CONTROL_MASK|GDK_SHIFT_MASK, GDK_KEY_T)) {
+	if (!(event->state & GDK_CONTROL_MASK)) {
+		return FALSE;
+	} else if (KEY(GDK_KEY_T, GDK_SHIFT_MASK)) {
 		add_tab();
-	} else if (match_key(event, GDK_CONTROL_MASK, GDK_KEY_Page_Up)) {
+	} else if (KEY(GDK_KEY_Page_Up, 0)) {
 		gtk_notebook_prev_page(notebook);
-	} else if (match_key(event, GDK_CONTROL_MASK, GDK_KEY_Page_Down)) {
+	} else if (KEY(GDK_KEY_Page_Down, 0)) {
 		gtk_notebook_next_page(notebook);
-	} else if (match_key(event, GDK_CONTROL_MASK|GDK_SHIFT_MASK, GDK_KEY_C)) {
+	} else if (KEY(GDK_KEY_C, GDK_SHIFT_MASK)) {
 		term = get_current_term();
 		vte_terminal_copy_clipboard_format(term, VTE_FORMAT_TEXT);
-	} else if (match_key(event, GDK_CONTROL_MASK|GDK_SHIFT_MASK, GDK_KEY_V)) {
+	} else if (KEY(GDK_KEY_V, GDK_SHIFT_MASK)) {
 		term = get_current_term();
 		vte_terminal_paste_clipboard(term);
-	} else if (match_key(event, GDK_CONTROL_MASK|GDK_SHIFT_MASK, GDK_KEY_plus)) {
+	} else if (KEY(GDK_KEY_plus, GDK_SHIFT_MASK)) {
 		set_font_scale(font_scale * 1.2);
-	} else if (match_key(event, GDK_CONTROL_MASK, GDK_KEY_minus)) {
+	} else if (KEY(GDK_KEY_minus, 0)) {
 		set_font_scale(font_scale / 1.2);
-	} else if (match_key(event, GDK_CONTROL_MASK, GDK_KEY_0)) {
+	} else if (KEY(GDK_KEY_0, 0)) {
 		set_font_scale(1);
 	} else {
 		return FALSE;
