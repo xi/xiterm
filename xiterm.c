@@ -7,7 +7,6 @@
 #define REGEX_URL "https?://[a-zA-Z0-9./_-]+"
 #define KEY(v, s) (event->keyval == (v) && event->state == (GDK_CONTROL_MASK|(s)))
 
-GtkApplication *app;
 GtkWindow *window;
 GtkNotebook *notebook;
 VteRegex *url_regex;
@@ -173,15 +172,26 @@ gboolean on_key(GtkWidget *widget, GdkEventKey *event, gpointer user_data) {
 	return TRUE;
 }
 
-void activate(GtkApplication* app, gpointer user_data) {
+int main(int argc, char **argv) {
+	int i;
+	GError *err = NULL;
 	GtkWidget *widget;
 
-	widget = gtk_application_window_new(app);
+	url_regex = vte_regex_new_for_match(REGEX_URL, -1, PCRE2_MULTILINE, &err);
+	g_assert(err == NULL);
+
+	for (i = 0; i < 16; i++) {
+		gdk_rgba_parse(palette + i, colors[i]);
+	}
+
+	gtk_init(&argc, &argv);
+	widget = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	window = GTK_WINDOW(widget);
 	gtk_window_set_default_icon_name("utilities-terminal");
 	gtk_window_set_default_size(window, 620, 340);
 	gtk_window_set_title(window, "XiTerm");
 	g_signal_connect(GTK_WIDGET(window), "key-press-event", G_CALLBACK(on_key), NULL);
+	g_signal_connect(GTK_WIDGET(window), "destroy", G_CALLBACK(gtk_main_quit), NULL);
 
 	widget = gtk_notebook_new();
 	gtk_container_add(GTK_CONTAINER(window), widget);
@@ -191,24 +201,8 @@ void activate(GtkApplication* app, gpointer user_data) {
 	gtk_widget_show_all(GTK_WIDGET(window));
 
 	add_tab();
-}
-
-int main(int argc, char **argv) {
-	int i, status;
-	GError *err = NULL;
-
-	url_regex = vte_regex_new_for_match(REGEX_URL, -1, PCRE2_MULTILINE, &err);
-	g_assert(err == NULL);
-
-	for (i = 0; i < 16; i++) {
-		gdk_rgba_parse(palette + i, colors[i]);
-	}
-
-	app = gtk_application_new("org.xi.xiterm", G_APPLICATION_FLAGS_NONE);
-	g_signal_connect(app, "activate", G_CALLBACK(activate), NULL);
-	status = g_application_run(G_APPLICATION(app), argc, argv);
-	g_object_unref(app);
+	gtk_main();
 	vte_regex_unref(url_regex);
 
-	return status;
+	return 0;
 }
