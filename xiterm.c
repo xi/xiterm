@@ -42,9 +42,11 @@ void update_show_tabs() {
 
 void on_term_title(VteTerminal *term, gpointer user_data) {
 	const char *title;
+	GtkWidget *label;
 
 	title = vte_terminal_get_window_title(term);
-	gtk_notebook_set_tab_label_text(notebook, GTK_WIDGET(term), title);
+	label = gtk_notebook_get_tab_label(notebook, GTK_WIDGET(term));
+	gtk_label_set_text(GTK_LABEL(label), title);
 }
 
 gboolean on_term_click(VteTerminal *term, GdkEventButton *event, gpointer user_data) {
@@ -122,7 +124,7 @@ void setup_terminal(VteTerminal *term) {
 }
 
 void add_tab(void) {
-	GtkWidget *page;
+	GtkWidget *page, *label;
 	int page_num;
 
 	page = vte_terminal_new();
@@ -130,6 +132,10 @@ void add_tab(void) {
 	page_num = gtk_notebook_insert_page(notebook, page, NULL, page_num);
 	gtk_notebook_set_tab_reorderable(notebook, page, TRUE);
 	gtk_container_child_set(GTK_CONTAINER(notebook), page, "tab-expand", TRUE, NULL);
+
+	label = gtk_label_new("");
+	gtk_label_set_ellipsize(GTK_LABEL(label), PANGO_ELLIPSIZE_END);
+	gtk_notebook_set_tab_label(notebook, page, label);
 
 	update_show_tabs();
 	gtk_widget_show(page);
