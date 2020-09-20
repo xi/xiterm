@@ -131,9 +131,9 @@ void add_tab(void) {
 	page_num = gtk_notebook_get_current_page(notebook) + 1;
 	page_num = gtk_notebook_insert_page(notebook, page, NULL, page_num);
 	gtk_notebook_set_tab_reorderable(notebook, page, TRUE);
-	gtk_container_child_set(GTK_CONTAINER(notebook), page, "tab-expand", TRUE, NULL);
 
 	label = gtk_label_new("");
+	gtk_widget_set_hexpand(label, TRUE);
 	gtk_label_set_ellipsize(GTK_LABEL(label), PANGO_ELLIPSIZE_END);
 	gtk_notebook_set_tab_label(notebook, page, label);
 
