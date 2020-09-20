@@ -13,7 +13,7 @@ VteRegex *url_regex;
 GdkRGBA palette[16];
 double font_scale = 1;
 
-char *cmd[2] = {"/bin/bash", NULL};
+char *cmd[4] = {"/bin/bash", NULL, NULL, NULL};
 const char *colors[16] = {
 	"#000", "#c00", "#591", "#b71", "#16c", "#96a", "#299", "#ccc",
 	"#333", "#f33", "#7c0", "#ed0", "#6ad", "#c8b", "#0dd", "#fff",
@@ -179,9 +179,21 @@ gboolean on_key(GtkWidget *widget, GdkEventKey *event, gpointer user_data) {
 }
 
 int main(int argc, char **argv) {
-	int i;
+	int i, opt;
 	GError *err = NULL;
 	GtkWidget *widget;
+
+	while ((opt = getopt(argc, argv, "e:")) != -1) {
+		switch (opt) {
+		case 'e':
+			cmd[0] = "/bin/sh";
+			cmd[1] = "-c";
+			cmd[2] = optarg;
+			break;
+		default:
+			exit(EXIT_FAILURE);
+		}
+	}
 
 	url_regex = vte_regex_new_for_match(REGEX_URL, -1, PCRE2_MULTILINE, &err);
 	g_assert(err == NULL);
