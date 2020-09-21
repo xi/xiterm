@@ -4,7 +4,7 @@
 #define PCRE2_CODE_UNIT_WIDTH 0
 #include <pcre2.h>
 
-#define REGEX_URL "https?://[a-zA-Z0-9./_-]+"
+#define REGEX_URL "https?://[a-zA-Z0-9./?&%=#:_-]+"
 #define KEY(v, s) (event->keyval == (v) && event->state == (GDK_CONTROL_MASK|(s)))
 
 GtkWindow *window;
