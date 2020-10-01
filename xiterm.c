@@ -1,3 +1,4 @@
+#include <string.h>
 #include <gtk/gtk.h>
 #include <vte/vte.h>
 
@@ -179,20 +180,23 @@ gboolean on_key(GtkWidget *widget, GdkEventKey *event, gpointer user_data) {
 }
 
 int main(int argc, char **argv) {
-	int i, opt;
+	int i;
+	char command[128] = "";
 	GError *err = NULL;
 	GtkWidget *widget;
 
-	while ((opt = getopt(argc, argv, "e:")) != -1) {
-		switch (opt) {
-		case 'e':
-			cmd[0] = "/bin/sh";
-			cmd[1] = "-c";
-			cmd[2] = optarg;
-			break;
-		default:
+	if (argc > 1) {
+		if (strcmp(argv[1], "-e") != 0) {
+			fprintf(stderr, "Usage: xiterm [-e CMD]\n");
 			exit(EXIT_FAILURE);
 		}
+		for (i = 2; i < argc; i++) {
+			strncat(command, argv[i], 128 - 1 - strlen(command));
+			strncat(command, " ", 128 - 1 - strlen(command));
+		}
+		cmd[0] = "/bin/sh";
+		cmd[1] = "-c";
+		cmd[2] = command;
 	}
 
 	url_regex = vte_regex_new_for_match(REGEX_URL, -1, PCRE2_MULTILINE, &err);
