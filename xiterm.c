@@ -7,6 +7,7 @@
 
 #define REGEX_URL "https?://[a-zA-Z0-9./?&%=#:_-]+"
 #define KEY(v, s) (event->keyval == (v) && event->state == (GDK_CONTROL_MASK|(s)))
+#define KEY_S(v) (event->keyval == (v) && (GDK_SHIFT_MASK|event->state) == (GDK_SHIFT_MASK|GDK_CONTROL_MASK))
 
 GtkWindow *window;
 GtkNotebook *notebook;
@@ -157,9 +158,9 @@ gboolean on_key(GtkWidget *widget, GdkEventKey *event, gpointer user_data) {
 		return FALSE;
 	} else if (KEY(GDK_KEY_T, GDK_SHIFT_MASK)) {
 		add_tab();
-	} else if (KEY(GDK_KEY_Page_Up, 0)) {
+	} else if (KEY_S(GDK_KEY_Page_Up)) {
 		gtk_notebook_prev_page(notebook);
-	} else if (KEY(GDK_KEY_Page_Down, 0)) {
+	} else if (KEY_S(GDK_KEY_Page_Down)) {
 		gtk_notebook_next_page(notebook);
 	} else if (KEY(GDK_KEY_C, GDK_SHIFT_MASK)) {
 		term = get_current_term();
@@ -167,11 +168,11 @@ gboolean on_key(GtkWidget *widget, GdkEventKey *event, gpointer user_data) {
 	} else if (KEY(GDK_KEY_V, GDK_SHIFT_MASK)) {
 		term = get_current_term();
 		vte_terminal_paste_clipboard(term);
-	} else if (KEY(GDK_KEY_plus, GDK_SHIFT_MASK)) {
+	} else if (KEY_S(GDK_KEY_plus)) {
 		set_font_scale(font_scale * 1.2);
-	} else if (KEY(GDK_KEY_minus, 0)) {
+	} else if (KEY_S(GDK_KEY_minus)) {
 		set_font_scale(font_scale / 1.2);
-	} else if (KEY(GDK_KEY_0, 0)) {
+	} else if (KEY_S(GDK_KEY_0)) {
 		set_font_scale(1);
 	} else {
 		return FALSE;
