@@ -6,8 +6,8 @@
 #include <pcre2.h>
 
 #define REGEX_URL "https?://[a-zA-Z0-9./?&%=#:_-]+"
-#define KEY(v, s) (event->keyval == (v) && event->state == (GDK_CONTROL_MASK|(s)))
-#define KEY_S(v) (event->keyval == (v) && (GDK_SHIFT_MASK|event->state) == (GDK_SHIFT_MASK|GDK_CONTROL_MASK))
+#define KEY(v, s) (event->keyval == (v) && modifiers == (GDK_CONTROL_MASK|(s)))
+#define KEY_S(v) (event->keyval == (v) && (GDK_SHIFT_MASK|modifiers) == (GDK_SHIFT_MASK|GDK_CONTROL_MASK))
 
 GtkWindow *window;
 GtkNotebook *notebook;
@@ -153,8 +153,11 @@ void add_tab(void) {
 
 gboolean on_key(GtkWidget *widget, GdkEventKey *event, gpointer user_data) {
 	VteTerminal *term;
+	GdkModifierType modifiers;
 
-	if (!(event->state & GDK_CONTROL_MASK)) {
+	modifiers = event->state & gtk_accelerator_get_default_mod_mask();
+
+	if (!(modifiers & GDK_CONTROL_MASK)) {
 		return FALSE;
 	} else if (KEY(GDK_KEY_T, GDK_SHIFT_MASK)) {
 		add_tab();
