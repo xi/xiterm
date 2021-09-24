@@ -84,12 +84,8 @@ VteTerminal *get_current_term(void) {
 	int page_num;
 
 	page_num = gtk_notebook_get_current_page(notebook);
-	if (page_num == -1) {
-		return NULL;
-	} else {
-		GtkWidget *page = gtk_notebook_get_nth_page(notebook, page_num);
-		return VTE_TERMINAL(page);
-	}
+	GtkWidget *page = gtk_notebook_get_nth_page(notebook, page_num);
+	return VTE_TERMINAL(page);
 }
 
 const char* get_cwd(VteTerminal *term) {
