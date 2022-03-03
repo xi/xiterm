@@ -115,6 +115,7 @@ void setup_terminal(VteTerminal *term) {
 	vte_terminal_set_colors(term, &palette[15], NULL, palette, 16);
 	vte_terminal_set_bold_is_bright(term, TRUE);
 	vte_terminal_set_font_scale(term, font_scale);
+	vte_terminal_set_enable_bidi(term, FALSE);
 
 	g_signal_connect(term, "window-title-changed", G_CALLBACK(on_term_title), NULL);
 	g_signal_connect(term, "button-press-event", G_CALLBACK(on_term_click), NULL);
