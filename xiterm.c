@@ -5,7 +5,7 @@
 #define PCRE2_CODE_UNIT_WIDTH 0
 #include <pcre2.h>
 
-#define REGEX_URL "https?://[^\\s)>]*[^\\s)>.,:;?!]"
+#define REGEX_URL "https?://[^\\s<>]*[^\\s\\])}<>.,:;?!\"']"
 #define KEY(v, s) (event->keyval == (v) && modifiers == (GDK_CONTROL_MASK|(s)))
 #define KEY_S(v) (event->keyval == (v) && (GDK_SHIFT_MASK|modifiers) == (GDK_SHIFT_MASK|GDK_CONTROL_MASK))
 
