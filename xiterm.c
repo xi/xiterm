@@ -148,6 +148,14 @@ void add_tab(void) {
 	gtk_widget_grab_focus(page);
 }
 
+void move_tab(int offset) {
+	int k = gtk_notebook_get_current_page(notebook);
+	GtkWidget *widget = gtk_notebook_get_nth_page(notebook, k);
+	if (k + offset >= 0) {
+		gtk_notebook_reorder_child(notebook, widget, k + offset);
+	}
+}
+
 gboolean on_key(GtkWidget *widget, GdkEventKey *event, gpointer user_data) {
 	VteTerminal *term;
 	GdkModifierType modifiers;
@@ -158,10 +166,14 @@ gboolean on_key(GtkWidget *widget, GdkEventKey *event, gpointer user_data) {
 		return FALSE;
 	} else if (KEY(GDK_KEY_T, GDK_SHIFT_MASK)) {
 		add_tab();
-	} else if (KEY_S(GDK_KEY_Page_Up)) {
+	} else if (KEY(GDK_KEY_Page_Up, 0)) {
 		gtk_notebook_prev_page(notebook);
-	} else if (KEY_S(GDK_KEY_Page_Down)) {
+	} else if (KEY(GDK_KEY_Page_Down, 0)) {
 		gtk_notebook_next_page(notebook);
+	} else if (KEY(GDK_KEY_Page_Up, GDK_SHIFT_MASK)) {
+		move_tab(-1);
+	} else if (KEY(GDK_KEY_Page_Down, GDK_SHIFT_MASK)) {
+		move_tab(1);
 	} else if (KEY(GDK_KEY_C, GDK_SHIFT_MASK)) {
 		term = get_current_term();
 		vte_terminal_copy_clipboard_format(term, VTE_FORMAT_TEXT);
