@@ -138,7 +138,6 @@ void add_tab(void) {
 	gtk_notebook_set_tab_label(notebook, page, label);
 
 	update_show_tabs();
-	gtk_widget_show(page);
 
 	// needs to execute after gtk_widget_show() (for proper dimensions)
 	// and before gtk_notebook_get_current_page() (so we can access the
