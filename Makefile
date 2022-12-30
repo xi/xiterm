@@ -1,6 +1,6 @@
 PREFIX = /usr
-CFLAGS = -std=c99 -pedantic -Wall -Wno-deprecated-declarations -fanalyzer -O2 `pkg-config --cflags gtk+-3.0 vte-2.91`
-LDFLAGS = -s `pkg-config --libs gtk+-3.0 vte-2.91`
+CFLAGS = -std=c11 -pedantic -Wall -Wno-deprecated-declarations -fanalyzer -O2 `pkg-config --cflags gtk4 vte-2.91-gtk4`
+LDFLAGS = -s `pkg-config --libs gtk4 vte-2.91-gtk4`
 
 all: xiterm
 
