@@ -84,6 +84,13 @@ VteTerminal *get_current_term(void) {
 	return VTE_TERMINAL(page);
 }
 
+void restore_focus(void) {
+	VteTerminal *term;
+
+	term = get_current_term();
+	gtk_widget_grab_focus(GTK_WIDGET(term));
+}
+
 const char* get_cwd(VteTerminal *term) {
 	// only works if /etc/profile.d/vte-2.91.sh was sourced in .bashrc
 	const char *uri;
@@ -168,8 +175,10 @@ gboolean on_key(GtkEventControllerKey* self, unsigned int keyval, unsigned int k
 		add_tab();
 	} else if (KEY(GDK_KEY_Page_Up, 0)) {
 		gtk_notebook_prev_page(notebook);
+		restore_focus();
 	} else if (KEY(GDK_KEY_Page_Down, 0)) {
 		gtk_notebook_next_page(notebook);
+		restore_focus();
 	} else if (KEY(GDK_KEY_Page_Up, GDK_SHIFT_MASK)) {
 		move_tab(-1);
 	} else if (KEY(GDK_KEY_Page_Down, GDK_SHIFT_MASK)) {
