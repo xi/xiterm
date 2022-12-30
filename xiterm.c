@@ -51,23 +51,24 @@ void on_term_title(VteTerminal *term, gpointer user_data) {
 	gtk_label_set_text(GTK_LABEL(label), title);
 }
 
-gboolean on_term_click(VteTerminal *term, GdkEventButton *event, gpointer user_data) {
+void on_term_click(GtkGestureMultiPress* self, int n_press, double x, double y, gpointer user_data) {
 	GError *err = NULL;
 	char *uri;
+	GtkWidget *widget;
+	VteTerminal *term;
 
-	if (event->button == 3) {
-		uri = vte_terminal_match_check_event(term, (GdkEvent *)event, NULL);
-		if (uri != NULL) {
-			gtk_show_uri_on_window(window, uri, gtk_get_current_event_time(), &err);
-			if (err != NULL) {
-				fprintf(stderr, "Unable to open URI: %s\n", err->message);
-				g_error_free(err);
-			}
-			g_free(uri);
-			return TRUE;
+	widget = gtk_event_controller_get_widget(GTK_EVENT_CONTROLLER(self));
+	term = VTE_TERMINAL(widget);
+
+	uri = vte_terminal_check_match_at(term, x, y, NULL);
+	if (uri != NULL) {
+		gtk_show_uri_on_window(window, uri, gtk_get_current_event_time(), &err);
+		if (err != NULL) {
+			fprintf(stderr, "Unable to open URI: %s\n", err->message);
+			g_error_free(err);
 		}
+		g_free(uri);
 	}
-	return FALSE;
 }
 
 void on_term_exit(VteTerminal *term, int status, gpointer user_data) {
@@ -105,6 +106,7 @@ const char* get_cwd(VteTerminal *term) {
 void setup_terminal(VteTerminal *term) {
 	int tag;
 	const char *cwd;
+	GtkGesture *click_controller;
 
 	cwd = get_cwd(get_current_term());
 
@@ -118,8 +120,11 @@ void setup_terminal(VteTerminal *term) {
 	vte_terminal_set_enable_bidi(term, FALSE);
 
 	g_signal_connect(term, "window-title-changed", G_CALLBACK(on_term_title), NULL);
-	g_signal_connect(term, "button-press-event", G_CALLBACK(on_term_click), NULL);
 	g_signal_connect(term, "child-exited", G_CALLBACK(on_term_exit), NULL);
+
+	click_controller = gtk_gesture_multi_press_new(GTK_WIDGET(term));
+	gtk_gesture_single_set_button(GTK_GESTURE_SINGLE(click_controller), 3);
+	g_signal_connect(click_controller, "pressed", G_CALLBACK(on_term_click), NULL);
 }
 
 void add_tab(void) {
