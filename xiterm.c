@@ -6,8 +6,8 @@
 #include <pcre2.h>
 
 #define REGEX_URL "https?://[^\\s<>]*[^\\s\\])}<>.,:;?!\"']"
-#define KEY(v, s) (event->keyval == (v) && modifiers == (GDK_CONTROL_MASK|(s)))
-#define KEY_S(v) (event->keyval == (v) && (GDK_SHIFT_MASK|modifiers) == (GDK_SHIFT_MASK|GDK_CONTROL_MASK))
+#define KEY(v, s) (keyval == (v) && modifiers == (GDK_CONTROL_MASK|(s)))
+#define KEY_S(v) (keyval == (v) && (GDK_SHIFT_MASK|modifiers) == (GDK_SHIFT_MASK|GDK_CONTROL_MASK))
 
 GtkWindow *window;
 GtkNotebook *notebook;
@@ -156,11 +156,11 @@ void move_tab(int offset) {
 	}
 }
 
-gboolean on_key(GtkWidget *widget, GdkEventKey *event, gpointer user_data) {
+gboolean on_key(GtkEventControllerKey* self, unsigned int keyval, unsigned int keycode, GdkModifierType state, gpointer user_data) {
 	VteTerminal *term;
 	GdkModifierType modifiers;
 
-	modifiers = event->state & gtk_accelerator_get_default_mod_mask();
+	modifiers = state & gtk_accelerator_get_default_mod_mask();
 
 	if (!(modifiers & GDK_CONTROL_MASK)) {
 		return FALSE;
@@ -197,6 +197,7 @@ int main(int argc, char **argv) {
 	char command[128] = "";
 	GError *err = NULL;
 	GtkWidget *widget;
+	GtkEventController *key_controller;
 
 	if (argc > 1) {
 		if (strcmp(argv[1], "-e") != 0) {
@@ -226,8 +227,11 @@ int main(int argc, char **argv) {
 	gtk_window_set_default_icon_name("utilities-terminal");
 	gtk_window_set_default_size(window, 620, 340);
 	gtk_window_set_title(window, "XiTerm");
-	g_signal_connect(GTK_WIDGET(window), "key-press-event", G_CALLBACK(on_key), NULL);
 	g_signal_connect(GTK_WIDGET(window), "destroy", G_CALLBACK(gtk_main_quit), NULL);
+
+	key_controller = gtk_event_controller_key_new(widget);
+	gtk_event_controller_set_propagation_phase(key_controller, GTK_PHASE_CAPTURE);
+	g_signal_connect(key_controller, "key-pressed", G_CALLBACK(on_key), NULL);
 
 	widget = gtk_notebook_new();
 	gtk_container_add(GTK_CONTAINER(window), widget);
