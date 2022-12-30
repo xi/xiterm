@@ -51,8 +51,7 @@ void on_term_title(VteTerminal *term, gpointer user_data) {
 	gtk_label_set_text(GTK_LABEL(label), title);
 }
 
-void on_term_click(GtkGestureMultiPress* self, int n_press, double x, double y, gpointer user_data) {
-	GError *err = NULL;
+void on_term_click(GtkGestureClick* self, int n_press, double x, double y, gpointer user_data) {
 	char *uri;
 	GtkWidget *widget;
 	VteTerminal *term;
@@ -62,11 +61,7 @@ void on_term_click(GtkGestureMultiPress* self, int n_press, double x, double y, 
 
 	uri = vte_terminal_check_match_at(term, x, y, NULL);
 	if (uri != NULL) {
-		gtk_show_uri_on_window(window, uri, gtk_get_current_event_time(), &err);
-		if (err != NULL) {
-			fprintf(stderr, "Unable to open URI: %s\n", err->message);
-			g_error_free(err);
-		}
+		gtk_show_uri(window, uri, GDK_CURRENT_TIME);
 		g_free(uri);
 	}
 }
@@ -122,7 +117,8 @@ void setup_terminal(VteTerminal *term) {
 	g_signal_connect(term, "window-title-changed", G_CALLBACK(on_term_title), NULL);
 	g_signal_connect(term, "child-exited", G_CALLBACK(on_term_exit), NULL);
 
-	click_controller = gtk_gesture_multi_press_new(GTK_WIDGET(term));
+	click_controller = gtk_gesture_click_new();
+	gtk_widget_add_controller(GTK_WIDGET(term), GTK_EVENT_CONTROLLER(click_controller));
 	gtk_gesture_single_set_button(GTK_GESTURE_SINGLE(click_controller), 3);
 	g_signal_connect(click_controller, "pressed", G_CALLBACK(on_term_click), NULL);
 }
@@ -226,27 +222,29 @@ int main(int argc, char **argv) {
 		gdk_rgba_parse(palette + i, colors[i]);
 	}
 
-	gtk_init(&argc, &argv);
-	widget = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	gtk_init();
+	widget = gtk_window_new();
 	window = GTK_WINDOW(widget);
 	gtk_window_set_default_icon_name("utilities-terminal");
 	gtk_window_set_default_size(window, 620, 340);
 	gtk_window_set_title(window, "XiTerm");
-	g_signal_connect(GTK_WIDGET(window), "destroy", G_CALLBACK(gtk_main_quit), NULL);
 
-	key_controller = gtk_event_controller_key_new(widget);
+	key_controller = gtk_event_controller_key_new();
+	gtk_widget_add_controller(widget, key_controller);
 	gtk_event_controller_set_propagation_phase(key_controller, GTK_PHASE_CAPTURE);
 	g_signal_connect(key_controller, "key-pressed", G_CALLBACK(on_key), NULL);
 
 	widget = gtk_notebook_new();
-	gtk_container_add(GTK_CONTAINER(window), widget);
+	gtk_window_set_child(window, widget);
 	notebook = GTK_NOTEBOOK(widget);
 
 	gtk_notebook_set_show_border(notebook, FALSE);
-	gtk_widget_show_all(GTK_WIDGET(window));
+	gtk_widget_show(GTK_WIDGET(window));
 
 	add_tab();
-	gtk_main();
+	while (g_list_model_get_n_items(gtk_window_get_toplevels()) > 0) {
+		g_main_context_iteration(NULL, TRUE);
+	}
 	vte_regex_unref(url_regex);
 
 	return 0;
