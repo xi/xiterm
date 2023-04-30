@@ -1,5 +1,5 @@
 PREFIX = /usr
-CFLAGS = -std=c99 -Wall -Wno-deprecated-declarations -fanalyzer -O2 `pkg-config --cflags gtk+-3.0 vte-2.91`
+CFLAGS = -std=c99 -Wall -Wno-deprecated-declarations -fsanitize=address -fanalyzer -O2 `pkg-config --cflags gtk+-3.0 vte-2.91`
 LDFLAGS = -s `pkg-config --libs gtk+-3.0 vte-2.91`
 
 all: xiterm
