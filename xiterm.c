@@ -204,9 +204,10 @@ int main(int argc, char **argv) {
 			exit(EXIT_FAILURE);
 		}
 		for (i = 2; i < argc; i++) {
-			strncat(command, "\"", 128 - 1 - strlen(command));
 			strncat(command, argv[i], 128 - 1 - strlen(command));
-			strncat(command, "\" ", 128 - 1 - strlen(command));
+			if (i + 1 < argc) {
+				strncat(command, " ", 128 - 1 - strlen(command));
+			}
 		}
 		cmd[0] = "/bin/sh";
 		cmd[1] = "-c";
