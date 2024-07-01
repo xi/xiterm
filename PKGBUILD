@@ -4,6 +4,10 @@ pkgdesc='simple vte terminal emulator'
 arch=('amd64')
 license='MIT'
 depends=('libgtk-3-0' 'libvte-2.91-0' 'libc6')
+makedepends=(
+	'libvte-2.91-dev'
+	'libgtk-3-dev'
+)
 provides='x-terminal-emulator'
 
 package() {
