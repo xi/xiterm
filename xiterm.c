@@ -46,7 +46,7 @@ void on_term_title(VteTerminal *term, gpointer user_data) {
 	const char *title;
 	GtkWidget *label;
 
-	title = vte_terminal_get_window_title(term);
+	title = vte_terminal_get_termprop_string_by_id(term, VTE_PROPERTY_ID_XTERM_TITLE, NULL);
 	label = gtk_notebook_get_tab_label(notebook, GTK_WIDGET(term));
 	gtk_label_set_text(GTK_LABEL(label), title);
 }
@@ -90,12 +90,12 @@ VteTerminal *get_current_term(void) {
 
 const char* get_cwd(VteTerminal *term) {
 	// only works if /etc/profile.d/vte-2.91.sh was sourced in .bashrc
-	const char *uri;
+	GUri *uri;
 
 	if (term != NULL) {
-		uri = vte_terminal_get_current_directory_uri(term);
+		uri = vte_terminal_ref_termprop_uri_by_id(term, VTE_PROPERTY_ID_CURRENT_DIRECTORY_URI);
 		if (uri != NULL) {
-			return g_filename_from_uri(uri, NULL, NULL);
+			return g_filename_from_uri(g_uri_to_string(uri), NULL, NULL);
 		}
 	}
 
