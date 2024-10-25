@@ -15,7 +15,8 @@ VteRegex *url_regex;
 GdkRGBA palette[16];
 double font_scale = 1;
 
-char *cmd[4] = {"/bin/bash", NULL, NULL, NULL};
+char *default_cmd[2] = {"/bin/bash", NULL};
+char *initial_cmd[4] = {"/bin/bash", NULL, NULL, NULL};
 const char *colors[16] = {
 	"#000", "#c00", "#591", "#b71", "#16c", "#96a", "#299", "#ccc",
 	"#333", "#f33", "#7c0", "#ed0", "#6ad", "#c8b", "#0dd", "#fff",
@@ -102,7 +103,7 @@ const char* get_cwd(VteTerminal *term) {
 	return NULL;
 }
 
-void setup_terminal(VteTerminal *term) {
+void setup_terminal(VteTerminal *term, char **cmd) {
 	int tag;
 	const char *cwd;
 
@@ -122,7 +123,7 @@ void setup_terminal(VteTerminal *term) {
 	g_signal_connect(term, "child-exited", G_CALLBACK(on_term_exit), NULL);
 }
 
-void add_tab(void) {
+void add_tab(char **cmd) {
 	GtkWidget *page, *label;
 	int page_num;
 
@@ -142,7 +143,7 @@ void add_tab(void) {
 	// needs to execute after gtk_widget_show() (for proper dimensions)
 	// and before gtk_notebook_get_current_page() (so we can access the
 	// previous term to get cwd)
-	setup_terminal(VTE_TERMINAL(page));
+	setup_terminal(VTE_TERMINAL(page), cmd);
 
 	gtk_notebook_set_current_page(notebook, page_num);
 	gtk_widget_grab_focus(page);
@@ -165,7 +166,7 @@ gboolean on_key(GtkWidget *widget, GdkEventKey *event, gpointer user_data) {
 	if (!(modifiers & GDK_CONTROL_MASK)) {
 		return FALSE;
 	} else if (KEY(GDK_KEY_T, GDK_SHIFT_MASK)) {
-		add_tab();
+		add_tab(default_cmd);
 	} else if (KEY(GDK_KEY_Page_Up, 0)) {
 		gtk_notebook_prev_page(notebook);
 	} else if (KEY(GDK_KEY_Page_Down, 0)) {
@@ -209,9 +210,9 @@ int main(int argc, char **argv) {
 				strncat(command, " ", 128 - 1 - strlen(command));
 			}
 		}
-		cmd[0] = "/bin/sh";
-		cmd[1] = "-c";
-		cmd[2] = command;
+		initial_cmd[0] = "/bin/sh";
+		initial_cmd[1] = "-c";
+		initial_cmd[2] = command;
 	}
 
 	url_regex = vte_regex_new_for_match(REGEX_URL, -1, PCRE2_MULTILINE, &err);
@@ -237,7 +238,7 @@ int main(int argc, char **argv) {
 	gtk_notebook_set_show_border(notebook, FALSE);
 	gtk_widget_show_all(GTK_WIDGET(window));
 
-	add_tab();
+	add_tab(initial_cmd);
 	gtk_main();
 	vte_regex_unref(url_regex);
 
