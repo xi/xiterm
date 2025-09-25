@@ -5,6 +5,8 @@
 #define PCRE2_CODE_UNIT_WIDTH 0
 #include <pcre2.h>
 
+#include "portal.h"
+
 #define REGEX_URL "https?://[^\\s<>]*[^\\s\\])}<>.,:;?!\"']"
 #define KEY(v, s) (event->keyval == (v) && modifiers == (GDK_CONTROL_MASK|(s)))
 #define KEY_S(v) (event->keyval == (v) && (GDK_SHIFT_MASK|modifiers) == (GDK_SHIFT_MASK|GDK_CONTROL_MASK))
@@ -53,17 +55,12 @@ void on_term_title(VteTerminal *term, gpointer user_data) {
 }
 
 gboolean on_term_click(VteTerminal *term, GdkEventButton *event, gpointer user_data) {
-	GError *err = NULL;
 	char *uri;
 
 	if (event->button == 3) {
 		uri = vte_terminal_match_check_event(term, (GdkEvent *)event, NULL);
 		if (uri != NULL) {
-			gtk_show_uri_on_window(window, uri, gtk_get_current_event_time(), &err);
-			if (err != NULL) {
-				fprintf(stderr, "Unable to open URI: %s\n", err->message);
-				g_error_free(err);
-			}
+			open_uri(uri);
 			g_free(uri);
 			return TRUE;
 		}
@@ -242,6 +239,8 @@ int main(int argc, char **argv) {
 	g_signal_connect(settings, "changed::color-scheme", G_CALLBACK(on_color_scheme_changed), NULL);
 	on_color_scheme_changed(settings, "color-scheme", NULL);
 
+	portal_setup();
+
 	widget = gtk_notebook_new();
 	gtk_container_add(GTK_CONTAINER(window), widget);
 	notebook = GTK_NOTEBOOK(widget);
@@ -252,6 +251,7 @@ int main(int argc, char **argv) {
 	add_tab(initial_cmd);
 	gtk_main();
 	vte_regex_unref(url_regex);
+	portal_finalize();
 
 	return 0;
 }
