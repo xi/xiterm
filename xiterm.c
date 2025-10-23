@@ -78,12 +78,6 @@ void on_term_exit(VteTerminal *term, int status, gpointer user_data) {
 	}
 }
 
-void on_color_scheme_changed(GSettings *settings, gchar *key, gpointer user_data) {
-	gchar *value = g_settings_get_string(settings, key);
-	int prefer_dark = strcmp(value, "prefer-dark") == 0;
-	g_object_set(gtk_settings_get_default(), "gtk-application-prefer-dark-theme", prefer_dark, NULL);
-}
-
 VteTerminal *get_current_term(void) {
 	int page_num;
 
@@ -201,7 +195,6 @@ int main(int argc, char **argv) {
 	char command[128] = "";
 	GError *err = NULL;
 	GtkWidget *widget;
-	GSettings *settings;
 
 	if (argc > 1) {
 		if (strcmp(argv[1], "-e") != 0) {
@@ -234,10 +227,6 @@ int main(int argc, char **argv) {
 	gtk_window_set_title(window, "XiTerm");
 	g_signal_connect(GTK_WIDGET(window), "key-press-event", G_CALLBACK(on_key), NULL);
 	g_signal_connect(GTK_WIDGET(window), "destroy", G_CALLBACK(gtk_main_quit), NULL);
-
-	settings = g_settings_new("org.gnome.desktop.interface");
-	g_signal_connect(settings, "changed::color-scheme", G_CALLBACK(on_color_scheme_changed), NULL);
-	on_color_scheme_changed(settings, "color-scheme", NULL);
 
 	portal_setup();
 
