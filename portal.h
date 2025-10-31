@@ -8,10 +8,9 @@
 static GDBusProxy *openuri_portal;
 static GDBusProxy *settings_portal;
 
-static GDBusProxy *get_portal(const char *iface) {
-	GError *error = NULL;
-
-	GDBusProxy *proxy = g_dbus_proxy_new_for_bus_sync(
+static void portal_new(const char *iface, GAsyncReadyCallback callback) {
+	g_printerr("Connecting to %s\n", iface);
+	g_dbus_proxy_new_for_bus(
 		G_BUS_TYPE_SESSION,
 		G_DBUS_PROXY_FLAGS_NONE,
 		NULL,
@@ -19,16 +18,9 @@ static GDBusProxy *get_portal(const char *iface) {
 		"/org/freedesktop/portal/desktop",
 		iface,
 		NULL,
-		&error
+		callback,
+		NULL
 	);
-
-	if (error) {
-		g_printerr("Failed connect to portal %s: %s\n", iface, error->message);
-		g_clear_error(&error);
-		return NULL;
-	}
-
-	return proxy;
 }
 
 static void set_color_scheme(GVariant *scheme) {
@@ -43,7 +35,7 @@ static void set_color_scheme(GVariant *scheme) {
 	);
 }
 
-static void on_settings_portal(
+static void on_settings_signal(
 	GDBusProxy *proxy,
 	const char *sender_name,
 	const char *signal_name,
@@ -70,7 +62,7 @@ static void setup_color_scheme(void) {
 		g_signal_connect(
 			settings_portal,
 			"g-signal",
-			G_CALLBACK(on_settings_portal),
+			G_CALLBACK(on_settings_signal),
 			NULL
 		);
 
@@ -94,10 +86,30 @@ static void setup_color_scheme(void) {
 	}
 }
 
-void portal_setup(void) {
-	openuri_portal = get_portal("org.freedesktop.portal.OpenURI");
-	settings_portal = get_portal("org.freedesktop.portal.Settings");
+static void on_openuri_portal(GObject* source_object, GAsyncResult* res, gpointer data) {
+	GError *error = NULL;
+	openuri_portal = g_dbus_proxy_new_for_bus_finish(res, &error);
+	if (error) {
+		g_printerr("Failed connect to OpenURI portal: %s\n", error->message);
+		g_clear_error(&error);
+		openuri_portal = NULL;
+	}
+}
+
+static void on_settings_portal(GObject* source_object, GAsyncResult* res, gpointer data) {
+	GError *error = NULL;
+	settings_portal = g_dbus_proxy_new_for_bus_finish(res, &error);
+	if (error) {
+		g_printerr("Failed connect to Settings portal: %s\n", error->message);
+		g_clear_error(&error);
+		settings_portal = NULL;
+	}
 	setup_color_scheme();
+}
+
+void portal_setup(void) {
+	portal_new("org.freedesktop.portal.OpenURI", on_openuri_portal);
+	portal_new("org.freedesktop.portal.Settings", on_settings_portal);
 }
 
 void portal_finalize(void) {
