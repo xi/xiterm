@@ -124,15 +124,14 @@ void add_tab(char **cmd) {
 	GtkWidget *page, *label;
 	int page_num;
 
-	page = vte_terminal_new();
-	page_num = gtk_notebook_get_current_page(notebook) + 1;
-	page_num = gtk_notebook_insert_page(notebook, page, NULL, page_num);
-	gtk_notebook_set_tab_reorderable(notebook, page, TRUE);
-
 	label = gtk_label_new("");
 	gtk_widget_set_hexpand(label, TRUE);
 	gtk_label_set_ellipsize(GTK_LABEL(label), PANGO_ELLIPSIZE_END);
-	gtk_notebook_set_tab_label(notebook, page, label);
+
+	page = vte_terminal_new();
+	page_num = gtk_notebook_get_current_page(notebook) + 1;
+	page_num = gtk_notebook_insert_page(notebook, page, label, page_num);
+	gtk_notebook_set_tab_reorderable(notebook, page, TRUE);
 
 	update_show_tabs();
 	gtk_widget_show(page);
