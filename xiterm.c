@@ -11,15 +11,17 @@
 #define KEY(v, s) (event->keyval == (v) && modifiers == (GDK_CONTROL_MASK|(s)))
 #define KEY_S(v) (event->keyval == (v) && (GDK_SHIFT_MASK|modifiers) == (GDK_SHIFT_MASK|GDK_CONTROL_MASK))
 
+#define PALETTE_SIZE 16
+
 GtkWindow *window;
 GtkNotebook *notebook;
 VteRegex *url_regex;
-GdkRGBA palette[16];
+GdkRGBA palette[PALETTE_SIZE];
 double font_scale = 1;
 
 char *default_cmd[2] = {"/bin/bash", NULL};
 char *initial_cmd[4] = {"/bin/bash", NULL, NULL, NULL};
-const char *colors[16] = {
+const char *colors[PALETTE_SIZE] = {
 	"#000", "#c00", "#591", "#b71", "#16c", "#96a", "#299", "#ccc",
 	"#333", "#f33", "#7c0", "#ed0", "#6ad", "#c8b", "#0dd", "#fff",
 };
@@ -110,7 +112,7 @@ void setup_terminal(VteTerminal *term, char **cmd) {
 	vte_terminal_set_cursor_blink_mode(term, VTE_CURSOR_BLINK_OFF);
 	tag = vte_terminal_match_add_regex(term, url_regex, 0);
 	vte_terminal_match_set_cursor_name(term, tag, "pointer");
-	vte_terminal_set_colors(term, &palette[15], NULL, palette, 16);
+	vte_terminal_set_colors(term, &palette[15], NULL, palette, PALETTE_SIZE);
 	vte_terminal_set_bold_is_bright(term, TRUE);
 	vte_terminal_set_font_scale(term, font_scale);
 	vte_terminal_set_enable_bidi(term, FALSE);
@@ -214,7 +216,7 @@ int main(int argc, char **argv) {
 	url_regex = vte_regex_new_for_match(REGEX_URL, -1, PCRE2_MULTILINE, &err);
 	g_assert(err == NULL);
 
-	for (i = 0; i < 16; i++) {
+	for (i = 0; i < PALETTE_SIZE; i++) {
 		gdk_rgba_parse(palette + i, colors[i]);
 	}
 
