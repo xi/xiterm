@@ -9,7 +9,6 @@ static GDBusProxy *openuri_portal;
 static GDBusProxy *settings_portal;
 
 static void portal_new(const char *iface, GAsyncReadyCallback callback) {
-	g_printerr("Connecting to %s\n", iface);
 	g_dbus_proxy_new_for_bus(
 		G_BUS_TYPE_SESSION,
 		G_DBUS_PROXY_FLAGS_NONE,
