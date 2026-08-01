@@ -191,11 +191,33 @@ gboolean on_key(GtkWidget *widget, GdkEventKey *event, gpointer user_data) {
 	return TRUE;
 }
 
+void activate(GtkApplication* app, gpointer user_data) {
+	GtkWidget *widget;
+
+	widget = gtk_application_window_new(app);
+	window = GTK_WINDOW(widget);
+	gtk_window_set_default_icon_name("utilities-terminal");
+	gtk_window_set_default_size(window, 620, 340);
+	gtk_window_set_title(window, "XiTerm");
+	g_signal_connect(GTK_WIDGET(window), "key-press-event", G_CALLBACK(on_key), NULL);
+
+	portal_setup();
+
+	widget = gtk_notebook_new();
+	gtk_container_add(GTK_CONTAINER(window), widget);
+	notebook = GTK_NOTEBOOK(widget);
+
+	gtk_notebook_set_show_border(notebook, FALSE);
+	gtk_widget_show_all(GTK_WIDGET(window));
+
+	add_tab(initial_cmd);
+}
+
 int main(int argc, char **argv) {
-	int i;
+	int i, status;
 	char command[128] = "";
 	GError *err = NULL;
-	GtkWidget *widget;
+	GtkApplication *app;
 
 	if (argc > 1) {
 		if (strcmp(argv[1], "-e") != 0) {
@@ -220,28 +242,13 @@ int main(int argc, char **argv) {
 		gdk_rgba_parse(palette + i, colors[i]);
 	}
 
-	gtk_init(&argc, &argv);
-	widget = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-	window = GTK_WINDOW(widget);
-	gtk_window_set_default_icon_name("utilities-terminal");
-	gtk_window_set_default_size(window, 620, 340);
-	gtk_window_set_title(window, "XiTerm");
-	g_signal_connect(GTK_WIDGET(window), "key-press-event", G_CALLBACK(on_key), NULL);
-	g_signal_connect(GTK_WIDGET(window), "destroy", G_CALLBACK(gtk_main_quit), NULL);
+	app = gtk_application_new(NULL, G_APPLICATION_DEFAULT_FLAGS);
+	g_signal_connect(app, "activate", G_CALLBACK(activate), NULL);
+	status = g_application_run(G_APPLICATION(app), 0, NULL);
 
-	portal_setup();
-
-	widget = gtk_notebook_new();
-	gtk_container_add(GTK_CONTAINER(window), widget);
-	notebook = GTK_NOTEBOOK(widget);
-
-	gtk_notebook_set_show_border(notebook, FALSE);
-	gtk_widget_show_all(GTK_WIDGET(window));
-
-	add_tab(initial_cmd);
-	gtk_main();
+	g_object_unref(app);
 	vte_regex_unref(url_regex);
 	portal_finalize();
 
-	return 0;
+	return status;
 }
