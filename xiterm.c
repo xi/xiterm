@@ -59,7 +59,7 @@ void on_term_title(VteTerminal *term, gpointer user_data) {
 gboolean on_term_click(VteTerminal *term, GdkEventButton *event, gpointer user_data) {
 	char *uri;
 
-	if (event->button == 3) {
+	if (event->button == GDK_BUTTON_SECONDARY) {
 		uri = vte_terminal_match_check_event(term, (GdkEvent *)event, NULL);
 		if (uri != NULL) {
 			open_uri(uri);
